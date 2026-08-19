@@ -2,6 +2,7 @@ import { test } from '@playwright/test';
 import { OrderPage } from '../pages/OrderPage';
 import { OrderSteps } from '../steps/OrderSteps';
 import { OrderVerifications } from '../verifications/OrderVerifications';
+import disabledButtonCases from '../data/disabledButtonCases.json';
 
 test.describe('Order Placement', () => {
   let orderPage: OrderPage;
@@ -17,20 +18,13 @@ test.describe('Order Placement', () => {
 
   // ── Guard conditions ──────────────────────────────────────────────────────
 
-  test('Place Order button is disabled with an empty cart', async () => {
-    await orderVerifications.verifyPlaceOrderDisabled();
-  });
-
-  test('Place Order button stays disabled without a customer name', async () => {
-    await orderSteps.addItem(0);
-    await orderVerifications.verifyPlaceOrderDisabled();
-  });
-
-  test('Place Order button stays disabled with a whitespace-only name', async () => {
-    await orderSteps.addItem(0);
-    await orderSteps.fillCustomerName('   ');
-    await orderVerifications.verifyPlaceOrderDisabled();
-  });
+  for (const { label, addItemIndex, customerName } of disabledButtonCases) {
+    test(`Place Order button is disabled — ${label}`, async () => {
+      if (addItemIndex !== null) await orderSteps.addItem(addItemIndex);
+      if (customerName !== null) await orderSteps.fillCustomerName(customerName);
+      await orderVerifications.verifyPlaceOrderDisabled();
+    });
+  }
 
   test('Place Order button is enabled once items and a name are provided', async () => {
     await orderSteps.addItem(0);

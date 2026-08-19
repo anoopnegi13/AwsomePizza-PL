@@ -1,0 +1,5 @@
+[
+  { "label": "empty cart",           "addItemIndex": null, "customerName": null  },
+  { "label": "no customer name",     "addItemIndex": 0,    "customerName": null  },
+  { "label": "whitespace-only name", "addItemIndex": 0,    "customerName": "   " }
+]
