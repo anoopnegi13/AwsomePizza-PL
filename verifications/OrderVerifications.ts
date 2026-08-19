@@ -1,7 +1,9 @@
 import { expect } from '@playwright/test';
 import { OrderPage } from '../pages/OrderPage';
 import { OrderSteps } from '../steps/OrderSteps';
+import { Verifications } from '../utils/allureUtils';
 
+@Verifications
 export class OrderVerifications {
   constructor(
     private readonly orderPage: OrderPage,

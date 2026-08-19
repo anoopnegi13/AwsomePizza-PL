@@ -1,7 +1,9 @@
 import { expect, Locator } from '@playwright/test';
 import { MenuPage } from '../pages/MenuPage';
 import { MenuSteps } from '../steps/MenuSteps';
+import { Verifications } from '../utils/allureUtils';
 
+@Verifications
 export class MenuVerifications {
   constructor(
     private readonly menuPage: MenuPage,

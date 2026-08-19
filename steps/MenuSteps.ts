@@ -1,6 +1,8 @@
 import { Locator } from '@playwright/test';
 import { MenuPage } from '../pages/MenuPage';
+import { Steps } from '../utils/allureUtils';
 
+@Steps
 export class MenuSteps {
   constructor(private readonly menuPage: MenuPage) {}
 

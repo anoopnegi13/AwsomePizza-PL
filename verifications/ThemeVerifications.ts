@@ -1,6 +1,8 @@
 import { expect } from '@playwright/test';
 import { ThemePage } from '../pages/ThemePage';
+import { Verifications } from '../utils/allureUtils';
 
+@Verifications
 export class ThemeVerifications {
   constructor(private readonly themePage: ThemePage) {}
 

@@ -1,6 +1,8 @@
 import { Locator } from '@playwright/test';
 import { OrderPage } from '../pages/OrderPage';
+import { Steps } from '../utils/allureUtils';
 
+@Steps
 export class OrderSteps {
   constructor(private readonly orderPage: OrderPage) {}
 
