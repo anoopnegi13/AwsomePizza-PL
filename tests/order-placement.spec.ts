@@ -2,7 +2,9 @@ import { test } from '@playwright/test';
 import { OrderPage } from '../pages/OrderPage';
 import { OrderSteps } from '../steps/OrderSteps';
 import { OrderVerifications } from '../verifications/OrderVerifications';
-import disabledButtonCases from '../data/disabledButtonCases.json';
+import { DisabledButtonCaseData } from '../data/order-placement/models/DisabledButtonCaseData';
+
+const disabledButtonCases = new DisabledButtonCaseData().getAll();
 
 test.describe('Order Placement', () => {
   let orderPage: OrderPage;
