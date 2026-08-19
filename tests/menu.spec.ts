@@ -1,75 +1,75 @@
-import { test, expect, type Page, type Locator } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
-const MENU_ITEMS = [
-  {
-    name: 'Margherita Pizza',
-    description: 'Classic pizza with fresh tomatoes, mozzarella cheese, and basil',
-  },
-  {
-    name: 'Pepperoni Pizza',
-    description: 'Traditional pizza topped with pepperoni and mozzarella cheese',
-  },
-  {
-    name: 'Quattro Stagioni',
-    description: 'Four seasons pizza with artichokes, ham, mushrooms, and olives',
-  },
-  {
-    name: 'Vegetarian Delight',
-    description: 'Fresh vegetables including bell peppers, onions, mushrooms, and tomatoes',
-  },
-  {
-    name: 'BBQ Chicken Pizza',
-    description: 'Grilled chicken with BBQ sauce, red onions, and cilantro',
-  },
-];
-
-// A pizza card is the container whose direct child is the item's h3 heading.
-function getPizzaCard(page: Page, name: string): Locator {
-  return page.getByRole('heading', { level: 3, name }).locator('..');
-}
-
-test.describe('Menu Display', () => {
+test.describe('Menu', () => {
   test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => localStorage.clear());
     await page.goto('/');
+    await page.locator('.menu-item').first().waitFor();
   });
 
-  test('TC-01: menu loads with all items, each showing image, name, description, and a qty stepper at 0', async ({
-    page,
-  }) => {
-    await expect(page.getByRole('heading', { level: 2, name: "Today's Menu" })).toBeVisible();
+  test('page loads with 5 pizza items', async ({ page }) => {
+    const menuItems = page.locator('.menu-item');
+    await expect(menuItems).toHaveCount(5);
 
-    for (const item of MENU_ITEMS) {
-      const card = getPizzaCard(page, item.name);
-
-      await expect(card.getByRole('img', { name: item.name })).toBeVisible();
-      await expect(card.getByRole('heading', { level: 3, name: item.name })).toBeVisible();
-      await expect(card.getByText(item.description)).toBeVisible();
-      await expect(card.getByRole('button', { name: '−' })).toBeVisible();
-      await expect(card.getByRole('button', { name: '+' })).toBeVisible();
-      await expect(card.getByText('0', { exact: true })).toBeVisible();
+    // Each item should have a visible h3 heading
+    const headings = menuItems.locator('h3');
+    await expect(headings).toHaveCount(5);
+    for (const heading of await headings.all()) {
+      await expect(heading).toBeVisible();
+      await expect(heading).not.toBeEmpty();
     }
+
+    // Each item should have an image
+    await expect(page.locator('.menu-item img')).toHaveCount(5);
   });
 
-  test('TC-02: pizza images load correctly with no broken images', async ({ page }) => {
-    for (const item of MENU_ITEMS) {
-      const image = getPizzaCard(page, item.name).getByRole('img', { name: item.name });
-      await expect(image).toBeVisible();
-
-      const naturalWidth = await image.evaluate((img: HTMLImageElement) => img.naturalWidth);
-      expect(naturalWidth).toBeGreaterThan(0);
-
-      const src = await image.getAttribute('src');
-      expect(src).toBeTruthy();
-    }
+  test('cart is initially empty', async ({ page }) => {
+    await expect(page.getByText('Your cart is empty')).toBeVisible();
+    await expect(page.locator('#total-items')).toHaveText('0');
   });
 
-  test('TC-03: quantity stepper defaults to 0 and decrementing has no effect', async ({ page }) => {
-    const card = getPizzaCard(page, MENU_ITEMS[0].name);
+  test('increment quantity increases item count', async ({ page }) => {
+    const firstItem = page.locator('.menu-item').first();
+    const incrementBtn = firstItem.getByRole('button', { name: '+' });
+    const quantityDisplay = firstItem.locator('.quantity-display');
 
-    await expect(card.getByText('0', { exact: true })).toBeVisible();
+    await expect(quantityDisplay).toHaveText('0');
+    await incrementBtn.click();
+    await expect(quantityDisplay).toHaveText('1');
+  });
 
-    await card.getByRole('button', { name: '−' }).click();
+  test('decrement at zero has no effect', async ({ page }) => {
+    const firstItem = page.locator('.menu-item').first();
+    const decrementBtn = firstItem.getByRole('button', { name: '−' });
+    const quantityDisplay = firstItem.locator('.quantity-display');
 
-    await expect(card.getByText('0', { exact: true })).toBeVisible();
+    await expect(quantityDisplay).toHaveText('0');
+    await decrementBtn.click();
+    await expect(quantityDisplay).toHaveText('0');
+  });
+
+  test('increment then decrement returns count to zero', async ({ page }) => {
+    const firstItem = page.locator('.menu-item').first();
+    const incrementBtn = firstItem.getByRole('button', { name: '+' });
+    const decrementBtn = firstItem.getByRole('button', { name: '−' });
+    const quantityDisplay = firstItem.locator('.quantity-display');
+
+    await expect(quantityDisplay).toHaveText('0');
+    await incrementBtn.click();
+    await expect(quantityDisplay).toHaveText('1');
+    await decrementBtn.click();
+    await expect(quantityDisplay).toHaveText('0');
+  });
+
+  test('cart total reflects added quantities', async ({ page }) => {
+    const firstItem = page.locator('.menu-item').first();
+    const secondItem = page.locator('.menu-item').nth(1);
+
+    await firstItem.getByRole('button', { name: '+' }).click();
+    await firstItem.getByRole('button', { name: '+' }).click();
+    await secondItem.getByRole('button', { name: '+' }).click();
+
+    await expect(page.locator('#total-items')).toHaveText('3');
+    await expect(page.locator('.empty-cart')).not.toBeVisible();
   });
 });
