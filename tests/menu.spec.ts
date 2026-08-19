@@ -1,18 +1,22 @@
 import { test, expect } from '@playwright/test';
+import { MenuPage } from '../pages/MenuPage';
+import { MenuSteps } from '../steps/MenuSteps';
 
 test.describe('Menu', () => {
+  let menuPage: MenuPage;
+  let menuSteps: MenuSteps;
+
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => localStorage.clear());
-    await page.goto('/');
-    await page.locator('.menu-item').first().waitFor();
+    menuPage = new MenuPage(page);
+    menuSteps = new MenuSteps(menuPage);
+    await menuSteps.goto();
   });
 
-  test('page loads with 5 pizza items', async ({ page }) => {
-    const menuItems = page.locator('.menu-item');
-    await expect(menuItems).toHaveCount(5);
+  test('page loads with 5 pizza items', async () => {
+    await expect(menuPage.menuItems).toHaveCount(5);
 
     // Each item should have a visible h3 heading
-    const headings = menuItems.locator('h3');
+    const headings = menuPage.menuItems.locator('h3');
     await expect(headings).toHaveCount(5);
     for (const heading of await headings.all()) {
       await expect(heading).toBeVisible();
@@ -20,56 +24,46 @@ test.describe('Menu', () => {
     }
 
     // Each item should have an image
-    await expect(page.locator('.menu-item img')).toHaveCount(5);
+    await expect(menuPage.menuItemImages).toHaveCount(5);
   });
 
-  test('cart is initially empty', async ({ page }) => {
-    await expect(page.getByText('Your cart is empty')).toBeVisible();
-    await expect(page.locator('#total-items')).toHaveText('0');
+  test('cart is initially empty', async () => {
+    await expect(menuPage.emptyCart).toBeVisible();
+    await expect(menuPage.totalItems).toHaveText('0');
   });
 
-  test('increment quantity increases item count', async ({ page }) => {
-    const firstItem = page.locator('.menu-item').first();
-    const incrementBtn = firstItem.getByRole('button', { name: '+' });
-    const quantityDisplay = firstItem.locator('.quantity-display');
+  test('increment quantity increases item count', async () => {
+    const quantityDisplay = menuSteps.getQuantityDisplay(0);
 
     await expect(quantityDisplay).toHaveText('0');
-    await incrementBtn.click();
+    await menuSteps.incrementItem(0);
     await expect(quantityDisplay).toHaveText('1');
   });
 
-  test('decrement at zero has no effect', async ({ page }) => {
-    const firstItem = page.locator('.menu-item').first();
-    const decrementBtn = firstItem.getByRole('button', { name: '−' });
-    const quantityDisplay = firstItem.locator('.quantity-display');
+  test('decrement at zero has no effect', async () => {
+    const quantityDisplay = menuSteps.getQuantityDisplay(0);
 
     await expect(quantityDisplay).toHaveText('0');
-    await decrementBtn.click();
+    await menuSteps.decrementItem(0);
     await expect(quantityDisplay).toHaveText('0');
   });
 
-  test('increment then decrement returns count to zero', async ({ page }) => {
-    const firstItem = page.locator('.menu-item').first();
-    const incrementBtn = firstItem.getByRole('button', { name: '+' });
-    const decrementBtn = firstItem.getByRole('button', { name: '−' });
-    const quantityDisplay = firstItem.locator('.quantity-display');
+  test('increment then decrement returns count to zero', async () => {
+    const quantityDisplay = menuSteps.getQuantityDisplay(0);
 
     await expect(quantityDisplay).toHaveText('0');
-    await incrementBtn.click();
+    await menuSteps.incrementItem(0);
     await expect(quantityDisplay).toHaveText('1');
-    await decrementBtn.click();
+    await menuSteps.decrementItem(0);
     await expect(quantityDisplay).toHaveText('0');
   });
 
-  test('cart total reflects added quantities', async ({ page }) => {
-    const firstItem = page.locator('.menu-item').first();
-    const secondItem = page.locator('.menu-item').nth(1);
+  test('cart total reflects added quantities', async () => {
+    await menuSteps.incrementItem(0);
+    await menuSteps.incrementItem(0);
+    await menuSteps.incrementItem(1);
 
-    await firstItem.getByRole('button', { name: '+' }).click();
-    await firstItem.getByRole('button', { name: '+' }).click();
-    await secondItem.getByRole('button', { name: '+' }).click();
-
-    await expect(page.locator('#total-items')).toHaveText('3');
-    await expect(page.locator('.empty-cart')).not.toBeVisible();
+    await expect(menuPage.totalItems).toHaveText('3');
+    await expect(menuPage.emptyCart).not.toBeVisible();
   });
 });

@@ -1,22 +1,22 @@
 import { test, expect } from '@playwright/test';
+import { ThemePage } from '../pages/ThemePage';
 
 test.describe('Theme', () => {
+  let themePage: ThemePage;
+
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => localStorage.clear());
-    await page.goto('/');
-    await page.locator('.menu-item').first().waitFor();
+    themePage = new ThemePage(page);
+    await themePage.goto();
   });
 
-  test('toggle dark theme switches theme and updates button icon', async ({ page }) => {
-    const themeBtn = page.getByRole('button', { name: 'Toggle dark theme' });
+  test('toggle dark theme switches theme and updates button icon', async () => {
+    await expect(themePage.themeToggleButton).toHaveText('🌙');
+    await themePage.toggleTheme();
+    await expect(themePage.html).toHaveAttribute('data-theme', 'dark');
+    await expect(themePage.themeToggleButton).toHaveText('☀️');
 
-    await expect(themeBtn).toHaveText('🌙');
-    await themeBtn.click();
-    await expect(page.locator('body')).toHaveClass(/dark/);
-    await expect(themeBtn).toHaveText('☀️');
-
-    await themeBtn.click();
-    await expect(page.locator('body')).not.toHaveClass(/dark/);
-    await expect(themeBtn).toHaveText('🌙');
+    await themePage.toggleTheme();
+    await expect(themePage.html).not.toHaveAttribute('data-theme', 'dark');
+    await expect(themePage.themeToggleButton).toHaveText('🌙');
   });
 });
