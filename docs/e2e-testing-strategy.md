@@ -69,9 +69,56 @@ tests/
 Update `playwright.config.ts` to:
 - Uncomment `baseURL: 'http://localhost:3000'` so tests use relative URLs
 - Keep cross-browser coverage (Chromium, Firefox, WebKit) for the happy-path order flow
-- Run `ui.spec.ts` on mobile viewports using `devices['iPhone 14']`
 
 ---
+
+## Acceptance Criteria
+
+### Cart Quantity
+- Cart item count represents total quantity of all items.
+- Quantities must never be negative.
+
+### Customer Name Validation
+- Empty string is invalid.
+- Whitespace-only values are invalid.
+
+### Successful Order
+A successful order must:
+- Display confirmation message.
+- Display a generated order ID.
+- Clear cart contents.
+- Retain order for lookup.
+
+### Theme Persistence
+Theme should remain active after page reload.
+
+### Order Lookup
+Valid order:
+- Shows order details.
+
+Invalid order:
+- Shows not-found message.
+
+## Out of Scope
+
+The following scenarios are intentionally excluded:
+
+- Network failure handling
+- Browser storage corruption
+- Performance testing
+- Security testing
+- API testing
+- Accessibility audits beyond documented checks
+
+## Test Data
+
+Default customer:
+- Test User
+
+Default order:
+- 1 Margherita Pizza
+
+Tests should reuse common test data rather than hardcoded values.
 
 ## Testing Priorities
 
